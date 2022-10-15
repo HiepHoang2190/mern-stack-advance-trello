@@ -33,7 +33,7 @@ function BoardContent() {
   useEffect(() => {
     // Sửa lại cái giá trị boardId của các bạn cho đúng nhé
     // Trong các buổi tới học chúng ta sẽ xử lý lấy boardId từ URL param sau, bây giờ cứ fix cứng tạm nhé
-    const boardId = '634175837b88e1571ce2ee55'
+    const boardId = '63498c10764db0d78bc49d69'
     fetchBoardDetails(boardId).then(board => {
       setBoard(board)
       setColumns(mapOrder(board.columns, board.columnOrder, '_id'))
