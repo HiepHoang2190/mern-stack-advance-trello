@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { Container, Draggable } from 'react-smooth-dnd'
+import { Container } from 'react-smooth-dnd'
 import {
   Container as BootstrapContainer,
   Row, Col, Form, Button
@@ -8,16 +8,17 @@ import {
 import { isEmpty, cloneDeep, isEqual } from 'lodash'
 
 import './BoardContent.scss'
-import Column from 'components/Column/Column'
+
 import { mapOrder } from 'utilities/sorts'
 import { applyDrag } from 'utilities/dragDrop'
 import {
-  fetchBoardDetails,
-  createNewColumn,
-  updateBoard,
-  updateColumn,
-  updateCard
+  fetchBoardDetailsAPI,
+  createNewColumnAPI,
+  updateBoardAPI,
+  updateColumnAPI,
+  updateCardAPI
 } from 'actions/ApiCall'
+import ListColumns from 'components/ListColumns/ListColumns'
 
 function BoardContent() {
   const [board, setBoard] = useState({})
@@ -34,7 +35,7 @@ function BoardContent() {
     // Sửa lại cái giá trị boardId của các bạn cho đúng nhé
     // Trong các buổi tới học chúng ta sẽ xử lý lấy boardId từ URL param sau, bây giờ cứ fix cứng tạm nhé
     const boardId = '63498c10764db0d78bc49d69'
-    fetchBoardDetails(boardId).then(board => {
+    fetchBoardDetailsAPI(boardId).then(board => {
       setBoard(board)
       setColumns(mapOrder(board.columns, board.columnOrder, '_id'))
     })
@@ -79,7 +80,7 @@ function BoardContent() {
     setBoard(newBoard)
 
     // Call api update columnOrder in board details.
-    updateBoard(newBoard._id, newBoard)
+    updateBoardAPI(newBoard._id, newBoard)
       .catch(() => {
         // Nếu gọi API lỗi thì set lại giá trị về ban đầu.
         setColumns(originalColumns)
@@ -116,7 +117,7 @@ function BoardContent() {
          * Hành động di chuyển card trong column hiện tại
          * 1 - Gọi API để cập nhật lại giá trị cardOrder trong cái column hiện tại
          */
-        updateColumn(currentColumn._id, currentColumn)
+        updateColumnAPI(currentColumn._id, currentColumn)
           .catch(() => {
             flushSync(() => setColumns(originalColumns))
             flushSync(() => setBoard(originalBoard))
@@ -126,7 +127,7 @@ function BoardContent() {
          * Hành động di chuyển card giữa 2 columns khác nhay
          */
         // 1 - Gọi API để cập nhật lại giá trị cardOrder trong cái column hiện tại
-        updateColumn(currentColumn._id, currentColumn)
+        updateColumnAPI(currentColumn._id, currentColumn)
           .catch(() => {
             flushSync(() => setColumns(originalColumns))
             flushSync(() => setBoard(originalBoard))
@@ -136,7 +137,7 @@ function BoardContent() {
           let currentCard = cloneDeep(dropResult.payload)
           currentCard.columnId = currentColumn._id
           // 2 - Gọi API để cập nhật giá trị columnId mới cho card sau khi nó được di chuyển qua column mới
-          updateCard(currentCard._id, currentCard)
+          updateCardAPI(currentCard._id, currentCard)
         }
       }
     }
@@ -153,7 +154,7 @@ function BoardContent() {
       title: newColumnTitle.trim()
     }
     // Call API
-    createNewColumn(newColumnToAdd).then(column => {
+    createNewColumnAPI(newColumnToAdd).then(column => {
       let newColumns = [...columns]
       newColumns.push(column)
 
@@ -203,15 +204,12 @@ function BoardContent() {
           className: 'column-drop-preview'
         }}
       >
-        {columns.map((column, index) => (
-          <Draggable key={index}>
-            <Column
-              column={column}
-              onCardDrop={onCardDrop}
-              onUpdateColumnState={onUpdateColumnState}
-            />
-          </Draggable>
-        ))}
+        <ListColumns
+          columns= {columns}
+          onCardDrop = {onCardDrop}
+          onUpdateColumnState = {onUpdateColumnState}
+        />
+
       </Container>
 
       <BootstrapContainer className="trungquandev-trello-container">
