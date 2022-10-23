@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import 'font-awesome/css/font-awesome.min.css'
+
 import { store } from 'redux/store'
 import { Provider } from 'react-redux'
-
 
 const container = document.getElementById('root')
 const root = createRoot(container)
