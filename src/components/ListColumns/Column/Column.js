@@ -13,7 +13,8 @@ import { createNewCardAPI, updateColumnAPI } from 'actions/ApiCall'
 import ListCards from 'components/ListCards/ListCards'
 function Column(props) {
   const { column, onCardDrop, onUpdateColumnState } = props
-  const cards = mapOrder(column.cards, column.cardOrder, '_id')
+  // const cards = mapOrder(column.cards, column.cardOrder, '_id')
+  const cards = column.cards
 
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const toggleShowConfirmModal = () => setShowConfirmModal(!showConfirmModal)
