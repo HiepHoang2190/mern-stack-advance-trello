@@ -6,13 +6,19 @@ import 'font-awesome/css/font-awesome.min.css'
 
 import { store } from 'redux/store'
 import { Provider } from 'react-redux'
+import {BrowserRouter} from 'react-router-dom'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const container = document.getElementById('root')
 const root = createRoot(container)
 root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  <BrowserRouter>
+    <Provider store={store}>
+      <App />
+      <ToastContainer/>
+    </Provider>
+  </BrowserRouter>
 )
 
 // If you want to start measuring performance in your app, pass a function
