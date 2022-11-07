@@ -8,12 +8,20 @@ import {
   EMAIL_RULE_MESSAGE,
   fieldErrorMessage
 } from 'utilities/validators'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { signUpUserAPI } from 'actions/ApiCall'
 
 function SingUp() {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const navigate = useNavigate()
 
   const onSubmitSignUp = (data) => {
     console.log('data', data)
+    toast.promise(signUpUserAPI(data),{pending:'Signing up...'})
+    .then(user => {
+      navigate(`/signIn?registeredEmail=${user.email}`)
+    })
   }
   return (
     <form className="auth__form form__sign-up" onSubmit={handleSubmit(onSubmitSignUp)}>

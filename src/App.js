@@ -7,6 +7,7 @@ import AppBar from 'components/AppBar/AppBar'
 import BoardBar from 'components/BoardBar/BoardBar'
 import BoardContent from 'components/BoardContent/BoardContent'
 import Auth from 'components/Auth/Auth'
+import AccountVerification from 'components/Auth/AccountVerification/AccountVerification'
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
 
       <Route path='/signIn' element={<Auth />} />
       <Route path='/signUp' element={<Auth />} />
+      <Route path='/account/verification' element={<AccountVerification />} />
 
       <Route path='*' element={
         <div className="not-found">
