@@ -6,12 +6,20 @@ import authSignInBg from 'resources/images/auth-sign-in-bg.png'
 import SingIn from 'components/Auth/SignIn/SingIn'
 import SingUp from 'components/Auth/SingUp/SingUp'
 
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, Link, Navigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { selectIsAuthenticated } from 'redux/user/userSlice'
+ 
 
 function Auth() {
   const location = useLocation()
   // console.log('location',location)
   const signUpMode = location.pathname === '/signUp' // boolean
+
+  const isAuthenticated = useSelector(selectIsAuthenticated)
+  if(isAuthenticated) {
+    return <Navigate to="/" />
+  }
 
   return (
     <div className={`auth__container  ${signUpMode ? 'sign-up-mode' : ''}`}>

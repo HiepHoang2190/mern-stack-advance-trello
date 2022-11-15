@@ -3,6 +3,7 @@ import {toast} from 'react-toastify'
 
 let authorizedAxiosInstance = axios.create()
 authorizedAxiosInstance.defaults.timeout = 1000 * 60 * 10 // 10 
+authorizedAxiosInstance.defaults.withCredentials = true  //  Sẽ cho phép axios tự động gửi cookie trong mỗi request lên BE
 
 // Kỹ thuật dùng css pointer-event để chặn user click nhanh tại bất kỳ chỗ nào có hành động click gọi api
 // Đây là một kỹ thuật rất hay tận dụng Axios Interceptors và CSS Pointer-event để chỉ phải viết code xử lý một lần cho toàn bộ dự án
