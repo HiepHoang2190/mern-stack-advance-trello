@@ -15,6 +15,9 @@ import { persistStore } from 'redux-persist'
  
 let persistor = persistStore(store)
 
+import {injectStore} from 'utilities/customAxios'
+injectStore(store)
+
 const container = document.getElementById('root')
 const root = createRoot(container)
 root.render(

@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import authorizedAxiosInstance from 'utilities/customAxios'
 import { API_ROOT } from 'utilities/constants'
 import { mapOrder } from 'utilities/sorts'
-
+import { toast } from 'react-toastify'
 // Khởi tạo giá trị của một Slice trong redux
 const initialState = {
   currentUser: null, 
@@ -19,6 +19,17 @@ export const signInUserApi = createAsyncThunk(
   }
 )
 
+export const signOutUserApi = createAsyncThunk(
+  'user/signOutUserApi',
+  async (showSuccessMessage =  true) => {
+    const request = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/users/sign_out`)
+    if (showSuccessMessage) {
+      toast.success('User signed out successfully! ', { theme: 'colored' })
+    }
+    return request.data
+  }
+)
+
 // Khởi tạo một slice trong redux store
 export const userSlice = createSlice({
   name: 'user',
@@ -27,11 +38,16 @@ export const userSlice = createSlice({
     //
   },
   extraReducers: (builder) => {
-    builder.addCase(signInUserApi.fulfilled, (state, action) => {
-    const user = action.payload
-    state.currentUser = user
-    state.isAuthenticated = true
+    builder.addCase(signOutUserApi.fulfilled, (state) => {
+    state.currentUser = null
+    state.isAuthenticated = false
     })
+
+    builder.addCase(signInUserApi.fulfilled, (state, action) => {
+      const user = action.payload
+      state.currentUser = user
+      state.isAuthenticated = true
+      })
   }
 })
 
