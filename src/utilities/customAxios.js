@@ -88,7 +88,7 @@ authorizedAxiosInstance.interceptors.response.use(function (response) {
     // console.log(error)
     let errorMessage = error?.message 
     if(error.response?.data?.errors) {
-        // console.log('error',error.response?.data?.errors)
+        console.log('error',error.response?.data?.errors)
         errorMessage = error.response?.data?.errors
     }
 

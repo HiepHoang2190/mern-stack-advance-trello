@@ -5,6 +5,7 @@ import trungquandevLogo from 'resources/images/logo-trungquandev-transparent-bg-
 import UserAvatar from 'components/Common/UserAvatar'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, signOutUserApi } from 'redux/user/userSlice'
+import { Link } from 'react-router-dom'
 
 function AppBar() {
   const dispatch = useDispatch()
@@ -52,15 +53,27 @@ function AppBar() {
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu>
-                      <Dropdown.Item className="account tqd-send">
+                      <Dropdown.Item 
+                      as={Link}
+                      to={`/u/${user?.username}?tab=account`}
+                      className="account tqd-send">
                         <i className="icon fa fa-user" />Account
                       </Dropdown.Item>
-                      <Dropdown.Item className="settings tqd-send">
+
+                      <Dropdown.Item 
+                      as={Link}
+                      to={`/u/${user?.username}?tab=settings`}
+                      className="settings tqd-send">
                         <i className="icon fa fa-cog" />Settings
                       </Dropdown.Item>
-                      <Dropdown.Item className="help tqd-send">
+
+                      <Dropdown.Item 
+                       as={Link}
+                       to={`/u/${user?.username}?tab=help`}
+                      className="help tqd-send">
                         <i className="icon fa fa-question-circle" />Help
                       </Dropdown.Item>
+
                       <Dropdown.Item 
                       onClick={() => {
                         dispatch(signOutUserApi())
@@ -68,6 +81,7 @@ function AppBar() {
                       className="sign-out tqd-send">
                         <i className="icon danger fa fa-sign-out" />Sign out
                       </Dropdown.Item>
+
                     </Dropdown.Menu>
                   </Dropdown>
                 </div>

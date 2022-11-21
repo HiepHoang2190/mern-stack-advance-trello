@@ -10,6 +10,7 @@ import Auth from 'components/Auth/Auth'
 import AccountVerification from 'components/Auth/AccountVerification/AccountVerification'
 import { useSelector } from 'react-redux'
 import { selectIsAuthenticated } from 'redux/user/userSlice'
+import UserPage from 'components/UserPage/UserPage'
 
 function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated)
@@ -30,6 +31,13 @@ function App() {
       <Route path='/signIn' element={<Auth />} />
       <Route path='/signUp' element={<Auth />} />
       <Route path='/account/verification' element={<AccountVerification />} />
+
+      <Route path='/u/:username' element={
+        <div className='user__page'>
+          <AppBar />
+          <UserPage/>
+        </div>
+      } />
 
       <Route path='*' element={
         <div className="not-found">
