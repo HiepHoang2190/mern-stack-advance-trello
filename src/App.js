@@ -1,6 +1,6 @@
 import React from 'react'
 import './App.scss'
-import { Routes, Route , Navigate } from 'react-router-dom'
+import { Routes, Route , Navigate, useLocation } from 'react-router-dom'
 
 // custom components
 import AppBar from 'components/AppBar/AppBar'
@@ -14,17 +14,20 @@ import UserPage from 'components/UserPage/UserPage'
 
 function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const publicRoutes = ['/signIn','/signUp','/account/verification','/404']
+  const location = useLocation()
 
+  if(!publicRoutes.includes(location.pathname) && !isAuthenticated) {
+    return <Navigate to='/signIn' />
+  }
   return (
     <Routes>
       <Route path='/' element={
-        !isAuthenticated
-          ? <Navigate to="/signIn" />
-          : <div className="trello-trungquandev-master">
-            <AppBar />
-            <BoardBar />
-            <BoardContent />
-            </div>
+        <div className="trello-trungquandev-master">
+        <AppBar />
+        <BoardBar />
+        <BoardContent />
+        </div>
   
       } />
 

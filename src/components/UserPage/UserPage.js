@@ -7,26 +7,31 @@ import UserAvatar from 'components/Common/UserAvatar'
 import trelloAccountImg from 'resources/images/trello-account.svg'
 import trelloSettingsImg from 'resources/images/trello-settings.png'
 import trelloHelpImg from 'resources/images/trello-help.png'
+import { MODAL_ACTION_CONFIRM } from 'utilities/constants'
 
 import { useDispatch,useSelector } from 'react-redux'
 import {
   selectCurrentUser,
+  signOutUserApi,
   updateUserApi
 } from 'redux/user/userSlice'
 import {
   PASSWORD_RULE,
   fieldErrorMessage,
-  PASSWORD_RULE_MESSAGE
+  PASSWORD_RULE_MESSAGE,
+  singleFileValidator
 } from 'utilities/validators'
 import { toast } from 'react-toastify'
 import { useEffect } from 'react'
 
+import ConfirmModal from 'components/Common/ConfirmModal'
 const UserPage = () => {
   const dispatch = useDispatch()
   const currentUser = useSelector(selectCurrentUser)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   // For multiple forms: https://stackoverflow.com/a/60277873/8324172
-  const { register, handleSubmit,watch, formState: { errors } } = useForm({
+  const { register, handleSubmit,watch,setValue, formState: { errors } } = useForm({
     defaultValues: {
       displayName: currentUser?.displayName
     }
@@ -66,11 +71,53 @@ const UserPage = () => {
     }
 
     console.log('goi api password')
-    // toast.promise(dispatch(signInUserAPI(data)), {
-    //   pending: 'Signing in...'
-    // }).then(() => {
-    //   navigate('/', { replace: true })
-    // })
+  
+    toast.promise(dispatch(updateUserApi({currentPassword,newPassword})), {
+      pending: 'Updating ...'
+    }).then((res) => {
+     setValue('currentPassword', null)
+     setValue('newPassword', null)
+     setValue('newPasswordConfirmation', null)
+
+     if(!res.error) {
+        setShowConfirmModal(true)
+     }
+    })
+  }
+
+  const onSubmitChangeAvatar = (event) => {
+    console.log(event.target?.files[0])
+    const err = singleFileValidator(event.target?.files[0])
+    if (err) {
+      toast.error(err)
+      return
+    }
+
+    let reqData = new FormData()
+    reqData.append('avatar',event.target?.files[0])
+
+
+    console.log(reqData) 
+    // ở đây xài console.log sẽ ko hiện, phải chạy vòng for ở dưới đối với FormData
+
+    // // Display the values
+    // for (const value of reqData.values()) {
+    //   console.log(value);
+    // }
+
+    toast.promise
+    (dispatch(updateUserApi({reqData})),
+    { pending: 'Updating...' }).then(()=> {
+      // reset filed input avatar
+      event.target.value = ''
+    })
+  }
+
+  const onConfirmModalAction = (type) => {
+    if (type === MODAL_ACTION_CONFIRM) {
+      dispatch(signOutUserApi())
+    }
+    setShowConfirmModal(false)
   }
 
   const handleSelectTab = (selectedTab) => { 
@@ -87,19 +134,19 @@ const UserPage = () => {
             <Form.Group controlId="formBasicFile">
               <Form.Label className='mb-0'>
                 <UserAvatar
-                  username="quando"
+                  user={currentUser}
                   width="50px"
                   height="50px"
                   fontSize="18px"
                   tooltip="Click to change your avatar!"
                 />
               </Form.Label>
-              <Form.Control type="file" />
+              <Form.Control type="file" onChange={onSubmitChangeAvatar}/>
             </Form.Group>
           </Form>
         </div>
-        <div className="display-name">Quan Do</div>
-        <div className="username">@trungquandev</div>
+        <div className="display-name">{currentUser?.displayName}</div>
+        <div className="username">{currentUser?.username}</div>
       </div>
       <div className="user__page__content">
         <Tabs activeKey={activeTab} className="user__tabs" onSelect={handleSelectTab}>
@@ -241,6 +288,14 @@ const UserPage = () => {
 
         </Tabs>
       </div>
+    
+      <ConfirmModal
+        show={showConfirmModal}
+        onAction={onConfirmModalAction}
+        title="Remove column"
+        content="Would you like to sign-out"
+      />
+
     </>
   )
 }
