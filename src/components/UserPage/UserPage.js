@@ -106,7 +106,7 @@ const UserPage = () => {
     // }
 
     toast.promise
-    (dispatch(updateUserApi({reqData})),
+    (dispatch(updateUserApi(reqData)),
     { pending: 'Updating...' }).then(()=> {
       // reset filed input avatar
       event.target.value = ''

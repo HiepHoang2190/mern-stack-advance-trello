@@ -53,7 +53,11 @@ export const signUpUserAPI = async (data) => {
   return request.data
  }
   
-  
+ export const fetchBoardsAPI = async () => {
+  const request = await authorizedAxiosInstance.get(`${API_ROOT}/v1/boards/`)
+  return request.data
+}
+
   
   
   

@@ -18,7 +18,11 @@ function AppBar() {
             <div className="app-actions">
               <div className="item all"><i className="fa fa-th" /></div>
               <div className="item home"><i className="fa fa-home" /></div>
-              <div className="item boards"><i className="fa fa-columns" />&nbsp;&nbsp;<strong>Boards</strong></div>
+              <div className="item boards">
+                <Link to={`/u/${user?.username}/boards?currentPage=1`}>
+                  <i className="fa fa-columns" />&nbsp;&nbsp;<strong>Boards</strong>
+                </Link>
+              </div>
               <div className="item search">
                 <Form className="common__form">
                   <InputGroup className="group-search">
