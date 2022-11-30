@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import ReactPaginate from 'react-paginate'
 
-function CustomPagination({ totalPages, itemsPerPage=12, currentPage=1 }) {
+function CustomPagination({ totalItems, itemsPerPage=12, currentPage=1, onPageChange }) {
   const [pageCount, setPageCount] = useState(1)
 
   useEffect(() => {
-    setPageCount(Math.ceil(totalPages / itemsPerPage))
-  }, [totalPages, itemsPerPage])
+    setPageCount(Math.ceil(totalItems / itemsPerPage))
+  }, [totalItems, itemsPerPage])
 
   // Invoke when user click to request another page.
   const handlePageClick = (event) => {
-    console.log(`User requested page number ${(event.selected + 1)}`)
+    // console.log(`User requested page number ${(event.selected + 1)}`)
+    const selectedPage = event.selected + 1
+    onPageChange(selectedPage, itemsPerPage)
   }
 
   return (
