@@ -9,16 +9,49 @@ import CreateNewBoardModal from './CreateNewBoardModal'
 import { fetchBoardsAPI } from 'actions/ApiCall'
 import LoadingSpinner from 'components/Common/LoadingSpinner'
 import { isEmpty } from 'lodash'
+import { createSearchParams, useSearchParams } from 'react-router-dom'
+import { useDebounce} from 'customHooks/useDebounce'
 function Boards() {
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false)
   const [boards, setBoards] = useState(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [totalBoards, setTotalBoards] = useState(null)
 
   useEffect(() => {
-    fetchBoardsAPI().then(res => {
-      setBoards(res)
+
+    const searchPath = `?${createSearchParams(searchParams)}`
+    console.log('searchPath',searchPath)
+
+    fetchBoardsAPI(searchPath).then(res => {
+      setBoards(res.boards)
+      setTotalBoards(res.totalBoards)
     })
 
-  }, [])
+  }, [searchParams])
+
+  const onPageChange = (selectedPage, itemsPerPage) => {
+    setSearchParams({
+      ...Object.fromEntries([...searchParams]),
+      currentPage: selectedPage,
+      itemsPerPage: itemsPerPage
+    })
+  }
+
+  const debounceSearchBoard = useDebounce(
+    (event) => {
+      const searchTerm = event.target?.value
+
+      // console.log('goi api voi keyword:', searchTerm)
+
+      setSearchParams({
+        ...Object.fromEntries([...searchParams]),
+        'q[title]': searchTerm,
+        'q[description]': searchTerm
+      })
+
+    },
+    1000 
+  )
 
   return (
     <BootstrapContainer>
@@ -45,6 +78,7 @@ function Boards() {
                     size="sm"
                     type="text"
                     placeholder="Search boards..."
+                    onChange = {debounceSearchBoard}
                   />
                 </Form>
               </ListGroup.Item>
@@ -77,7 +111,11 @@ function Boards() {
                   </Row>
                 </div>
 
-                <CustomPagination totalPages={350} />
+                <CustomPagination 
+                totalItems={totalBoards} 
+                currentPage = {searchParams.get('currentPage') || 1}
+                onPageChange = {onPageChange}
+                />
               </>
           }
 
