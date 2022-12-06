@@ -58,7 +58,11 @@ export const signUpUserAPI = async (data) => {
   return request.data
 }
 
-  
+export const createNewBoardAPI = async (data) => {
+  const request = await authorizedAxiosInstance.post(`${API_ROOT}/v1/boards`, data)
+  toast.success('Board created successfully', { theme: 'colored' })
+  return request.data
+}
   
   
  
