@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ReactPaginate from 'react-paginate'
 
 function CustomPagination({ totalItems, itemsPerPage=12, currentPage=1, onPageChange }) {
-  const [pageCount, setPageCount] = useState(1)
+  const [pageCount, setPageCount] = useState(+currentPage)
 
   useEffect(() => {
     setPageCount(Math.ceil(totalItems / itemsPerPage))
@@ -17,7 +17,7 @@ function CustomPagination({ totalItems, itemsPerPage=12, currentPage=1, onPageCh
 
   return (
     <ReactPaginate
-      initialPage={(currentPage-1)}
+      initialPage={(+currentPage - 1)}  // array chạy từ từ 0 nên đoạn này dưa vào thư viên xử lý chúng ta cần trừ 1   
 
       breakLabel="..."
       nextLabel="next >"

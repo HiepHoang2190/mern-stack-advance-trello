@@ -5,12 +5,18 @@ import {
   fieldErrorMessage
 } from 'utilities/validators'
 
-function CreateNewBoardModal({ show, onClose }) {
-  const { register, handleSubmit, formState: { errors } } = useForm()
+function CreateNewBoardModal({ show, onClose, onCreateNewBoard }) {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm()
 
   const onSubmit = (data) => {
     console.log('submitted data: ', data)
-    // onClose()
+ 
+    onCreateNewBoard(data).then( () => {
+      onClose()
+      //  reset form
+      reset()
+
+    })
   }
 
   return (

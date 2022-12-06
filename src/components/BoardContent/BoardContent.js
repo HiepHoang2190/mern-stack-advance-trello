@@ -22,6 +22,7 @@ import {
   fetchFullBoardDetailsAPI,
   selectCurrentFullBoard
 } from 'redux/activeBoard/activeBoardSlice'
+import { useParams } from 'react-router-dom'
 
 function BoardContent() {
   const dispatch = useDispatch()
@@ -38,12 +39,14 @@ function BoardContent() {
   const [newColumnTitle, setNewColumnTitle] = useState('')
   const onNewColumnTitleChange = (e) => setNewColumnTitle(e.target.value)
 
+  const { boardId } = useParams()
   useEffect(() => {
     // Sửa lại cái giá trị boardId của các bạn cho đúng nhé
     // Trong các buổi tới học chúng ta sẽ xử lý lấy boardId từ URL param sau, bây giờ cứ fix cứng tạm nhé
-    const boardId = '63498c10764db0d78bc49d69'
+    // const boardId = '63498c10764db0d78bc49d69'
+
     dispatch(fetchFullBoardDetailsAPI(boardId))
-  }, [dispatch])
+  }, [dispatch, boardId])
 
   useEffect(() => {
     if (board) {

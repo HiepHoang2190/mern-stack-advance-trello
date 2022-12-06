@@ -6,10 +6,10 @@ import {
 import CustomPagination from 'components/Common/Pagination'
 import './Boards.scss'
 import CreateNewBoardModal from './CreateNewBoardModal'
-import { fetchBoardsAPI } from 'actions/ApiCall'
+import { fetchBoardsAPI, createNewBoardAPI } from 'actions/ApiCall'
 import LoadingSpinner from 'components/Common/LoadingSpinner'
 import { isEmpty } from 'lodash'
-import { createSearchParams, useSearchParams } from 'react-router-dom'
+import { createSearchParams, useSearchParams, Link } from 'react-router-dom'
 import { useDebounce} from 'customHooks/useDebounce'
 function Boards() {
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false)
@@ -20,7 +20,7 @@ function Boards() {
   useEffect(() => {
 
     const searchPath = `?${createSearchParams(searchParams)}`
-    console.log('searchPath',searchPath)
+    // console.log('searchPath',searchPath)
 
     fetchBoardsAPI(searchPath).then(res => {
       setBoards(res.boards)
@@ -31,7 +31,8 @@ function Boards() {
 
   const onPageChange = (selectedPage, itemsPerPage) => {
     setSearchParams({
-      ...Object.fromEntries([...searchParams]),
+      ...Object.fromEntries([...searchParams]), // lấy đúng toàn bộ những params hiện tại trên URL
+      // Sau đó bên dưới là cập nhật/ ghi đè dữ liệu mới
       currentPage: selectedPage,
       itemsPerPage: itemsPerPage
     })
@@ -44,20 +45,42 @@ function Boards() {
       // console.log('goi api voi keyword:', searchTerm)
 
       setSearchParams({
-        ...Object.fromEntries([...searchParams]),
+        ...Object.fromEntries([...searchParams]), // lấy đúng toàn bộ những params hiện tại trên URL
+        // Sau đó bên dưới là cập nhật/ ghi đè dữ liệu mới
         'q[title]': searchTerm,
-        'q[description]': searchTerm
+        // 'q[description]': searchTerm
       })
 
     },
     1000 
   )
 
+  const createNewBoard = async (boardData) => {
+    try {
+
+      //  gọi api tạo mới 1 board
+      await createNewBoardAPI(boardData)
+
+      //  fetch lại danh sách board khi đã tạo thành công board mới
+
+      const searchPath = `?${createSearchParams(searchParams)}`
+      const res = await fetchBoardsAPI(searchPath)
+      setBoards(res.boards)
+      setTotalBoards(res.totalBoards)
+      
+
+      return true
+    } catch (error) {
+      return error
+    }
+  }
+
   return (
     <BootstrapContainer>
       <CreateNewBoardModal
         show={showCreateBoardModal}
         onClose={() => setShowCreateBoardModal(false)}
+        onCreateNewBoard = {createNewBoard}
       />
       <Row>
         <Col md={3} className="mt-5">
@@ -96,7 +119,7 @@ function Boards() {
                   <Row xs={1} md={2} lg={3} className="g-4">
                     {boards.map(b => (
                       <Col key={b._id}>
-                        <Card>
+                        <Card as={Link} to={`/b/${b._id}`} className="text-decoration-none">
                           <Card.Body>
                             <Card.Title className="card__title">{b.title}</Card.Title>
                             <Card.Text className="card__description">
