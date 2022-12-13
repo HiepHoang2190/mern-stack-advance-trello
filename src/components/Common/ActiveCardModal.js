@@ -3,7 +3,7 @@ import { Container as BootstrapContainer, Row, Col, Modal, Form } from 'react-bo
 import { useForm } from 'react-hook-form'
 import MDEditor from '@uiw/react-md-editor'
 import rehypeSanitize from 'rehype-sanitize'
-import { fieldErrorMessage } from 'utilities/validators'
+import { fieldErrorMessage, singleFileValidator } from 'utilities/validators'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser } from 'redux/user/userSlice'
 import UserAvatar from 'components/Common/UserAvatar'
@@ -12,11 +12,14 @@ import { saveContentAfterPressEnter, selectAllInlineText } from 'utilities/conte
 import {clearCurrentActiveCard, selectCurrentActiveCard, updateCurrentActiveCard} from 'redux/activeCard/activeCardSlice'
 import { toast } from 'react-toastify'
 import {updateCardAPI} from 'actions/ApiCall/index'
+import { updateCardInBoard , selectCurrentFullBoard } from 'redux/activeBoard/activeBoardSlice'
+import { USER_SELECT_POPOVER_TYPE_CARD_MEMBERS } from 'utilities/constants'
 function ActiveCardModal() {
   const dispatch = useDispatch()
   const { register, handleSubmit, formState: { errors }, reset } = useForm()
   const currentUser = useSelector(selectCurrentUser)
   const currentActiveCard = useSelector(selectCurrentActiveCard)
+  const board = useSelector(selectCurrentFullBoard)
 
 
   // https://codesandbox.io/embed/markdown-editor-for-react-izdd6?fontsize=14&hidenavigation=1&theme=dark
@@ -55,6 +58,26 @@ function ActiveCardModal() {
     updateCard({ description: e.target?.value})
   }
 
+  const beforeUpdateCardCover = (e) => {
+    console.log(event.target?.files[0])
+    const err = singleFileValidator(e.target?.files[0])
+    if (err) {
+      toast.error(err)
+      return
+    }
+
+    let reqData = new FormData()
+    reqData.append('cover',e.target?.files[0])
+
+    toast.promise
+    (
+      updateCard(reqData).finally(() => {
+        e.target.value = ''
+      }),
+      { pending: 'Updating...' }
+    )
+  }
+
   const updateCard = async (updateData) => {
     const updateCard = await updateCardAPI(currentActiveCard._id, updateData)
 
@@ -62,6 +85,7 @@ function ActiveCardModal() {
     dispatch(updateCurrentActiveCard(updateCard))
 
     // Cập nhật lại bản ghi card trong cái current board ()
+    dispatch(updateCardInBoard(updateCard))
 
     return updateCard
   }
@@ -84,15 +108,18 @@ function ActiveCardModal() {
       <Form className="common__form">
         <Modal.Body>
           <BootstrapContainer className="card__modal">
-            <Row className="card__modal__cover">
-              <Col>
-                <img
-                  src="https://trungquandev.com/wp-content/uploads/2021/05/trungquandev-cover-animation-scaled.jpg"
-                  className="card__modal__cover__img"
-                  alt="trungquandev-alt-img"
-                />
-              </Col>
-            </Row>
+            {currentActiveCard?.cover && 
+              <Row className="card__modal__cover">
+                <Col>
+                  <img
+                    src={currentActiveCard?.cover}
+                    className="card__modal__cover__img"
+                    alt="trungquandev-alt-img"
+                  />
+                </Col>
+              </Row>
+            }
+        
             <Row className="card__modal__header">
               <span className="card__modal__header__subject_icon">
                 <i className="fa fa-credit-card" />
@@ -134,7 +161,10 @@ function ActiveCardModal() {
                     <img src="https://trungquandev.com/wp-content/uploads/2019/06/trungquandev-cat-avatar.png" alt="avatar-trungquandev" title="trungquandev" />
                   </div>
                   <div className="member__avatars__item">
-                    <UserSelectPopover />
+                    <UserSelectPopover 
+                      users={board?.users}
+                      type={USER_SELECT_POPOVER_TYPE_CARD_MEMBERS}
+                    />
                   </div>
                 </div>
                 <div className="card__modal__description mb-4">
@@ -260,9 +290,18 @@ function ActiveCardModal() {
                   <div className="menu__group__item">
                     <i className="fa fa-paperclip" /> Attachment
                   </div>
-                  <div className="menu__group__item">
-                    <i className="fa fa-window-maximize" /> Cover
-                  </div>
+                  <Form.Group controlId="formBasicCardCover">
+                   <Form.Label className='mb-0' style={{ cursor: 'pointer', width: '100%' }}>
+                     <div className="menu__group__item">
+                       <i className="fa fa-window-maximize" /> Cover
+                     </div>
+                   </Form.Label>
+                   <Form.Control
+                     type="file"
+                     style={{ display: 'none' }}
+                     onChange={beforeUpdateCardCover}
+                   />
+                 </Form.Group>
                 </div>
                 <div className="menu__group">
                   <div className="menu__group__title">Power-Ups</div>
