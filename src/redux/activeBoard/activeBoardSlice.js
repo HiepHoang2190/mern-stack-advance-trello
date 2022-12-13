@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, current } from '@reduxjs/toolkit'
 import authorizedAxiosInstance from 'utilities/customAxios'
 import { API_ROOT } from 'utilities/constants'
 import { mapOrder } from 'utilities/sorts'
@@ -28,11 +28,34 @@ export const activeBoardSlice = createSlice({
     updateCurrentFullBoard: (state, action) => {
       const fullBoard = action.payload
       state.currentFullBoard = fullBoard
+    },
+    updateCardInBoard: (state, action) => {
+      // Updating Nested Data
+      // https://redux-toolkit.js.org/usage/immer-reducers#updating-nested-data
+      // console.log('current board',current(state.currentFullBoard))
+      // console.log('card', action.payload)
+      const inComingCard = action.payload
+
+      const column = state.currentFullBoard.columns.find( i => i._id === inComingCard.columnId)
+      if(column) {
+        const card = column.cards.find(i => i._id === inComingCard._id)
+        if (card) {
+          // card.title = inComingCard.title
+          const updateKeys = ['title', 'cover','description', 'memberIds','comments']
+          updateKeys.forEach( key => {
+            card[key] = inComingCard[key]
+          })
+        }
+      }
     }
   },
   extraReducers: (builder) => {
     builder.addCase(fetchFullBoardDetailsAPI.fulfilled, (state, action) => {
       let fullBoard = action.payload // chính là cái request.data phía trên
+
+
+      fullBoard.users = fullBoard.owners.concat(fullBoard.members)
+      fullBoard.totalUsers = fullBoard.users?.length
 
       fullBoard.columns = mapOrder(fullBoard.columns, fullBoard.columnOrder, '_id')
       fullBoard.columns.forEach(column => {
@@ -47,7 +70,7 @@ export const activeBoardSlice = createSlice({
 // Action creators are generated for each case reducer function
 // Actions: dành cho các components bên dưới gọi bằng dispatch() tới nó để cập nhật lại dữ liệu thông qua reducer (chạy đồng bộ)
 // Để ý ở trên thì không thấy properties actions đâu cả, bởi vì những cái actions này đơn giản là được thằng redux tạo tự động theo tên của reducer nhé.
-export const { updateCurrentFullBoard } = activeBoardSlice.actions
+export const { updateCurrentFullBoard, updateCardInBoard } = activeBoardSlice.actions
 
 // Selectors: mục đích là dành cho các components bên dưới gọi bằng useSelector() tới nó để lấy dữ liệu từ trong redux store ra sử dụng
 export const selectCurrentFullBoard = (state) => {
