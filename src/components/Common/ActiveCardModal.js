@@ -9,11 +9,13 @@ import { selectCurrentUser } from 'redux/user/userSlice'
 import UserAvatar from 'components/Common/UserAvatar'
 import UserSelectPopover from 'components/Common/UserSelectPopover'
 import { saveContentAfterPressEnter, selectAllInlineText } from 'utilities/contentEditable'
-import {clearCurrentActiveCard, selectCurrentActiveCard, updateCurrentActiveCard} from 'redux/activeCard/activeCardSlice'
+import { clearCurrentActiveCard, selectCurrentActiveCard, updateCurrentActiveCard } from 'redux/activeCard/activeCardSlice'
 import { toast } from 'react-toastify'
-import {updateCardAPI} from 'actions/ApiCall/index'
-import { updateCardInBoard , selectCurrentFullBoard } from 'redux/activeBoard/activeBoardSlice'
+import { updateCardAPI } from 'actions/ApiCall/index'
+import { updateCardInBoard, selectCurrentFullBoard } from 'redux/activeBoard/activeBoardSlice'
 import { USER_SELECT_POPOVER_TYPE_CARD_MEMBERS } from 'utilities/constants'
+import { isEmpty } from 'lodash'
+import moment from 'moment'
 function ActiveCardModal() {
   const dispatch = useDispatch()
   const { register, handleSubmit, formState: { errors }, reset } = useForm()
@@ -23,25 +25,25 @@ function ActiveCardModal() {
 
 
   // https://codesandbox.io/embed/markdown-editor-for-react-izdd6?fontsize=14&hidenavigation=1&theme=dark
-  
+
   const [cardDescription, setCardDescription] = useState(currentActiveCard?.description)
   const [markdownMode, setMarkdownMode] = useState(false)
 
   const beforeUpdateCardTitle = (e) => {
     console.log('Hanh dong update card title:', e.target?.value)
-    if(!e.target?.value) {
+    if (!e.target?.value) {
       toast.error('Please enter card  title')
       return false
 
     }
 
-    if ( e.target?.value === currentActiveCard) {
-      
+    if (e.target?.value === currentActiveCard) {
+
       return false
     }
 
     //  gọi api cập nhật card title
-    updateCard({ title: e.target?.value})
+    updateCard({ title: e.target?.value })
   }
 
   const beforeUpdateCardDescription = (e) => {
@@ -50,12 +52,12 @@ function ActiveCardModal() {
 
     disableMarkdownMode()
 
-    if ( e.target?.value === currentActiveCard?.description) {
-      
+    if (e.target?.value === currentActiveCard?.description) {
+
       return false
     }
     //  gọi api cập nhật card description
-    updateCard({ description: e.target?.value})
+    updateCard({ description: e.target?.value })
   }
 
   const beforeUpdateCardCover = (e) => {
@@ -67,15 +69,37 @@ function ActiveCardModal() {
     }
 
     let reqData = new FormData()
-    reqData.append('cover',e.target?.files[0])
+    reqData.append('cover', e.target?.files[0])
 
     toast.promise
-    (
-      updateCard(reqData).finally(() => {
+      (
+        updateCard(reqData).finally(() => {
+          e.target.value = ''
+        }),
+        { pending: 'Updating...' }
+      )
+  }
+
+  const beforeUpdateCardComment = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+
+      e.preventDefault()
+      if (!e.target?.value) {
+        return false
+      }
+
+      // console.log(e.target?.value);
+      const commentToUpdate = {
+        userAvatar: currentUser?.avatar,
+        userDisplayName: currentUser?.displayName,
+        content: e.target?.value
+      }
+
+      updateCard({ newComment: commentToUpdate }).then(() => {
         e.target.value = ''
-      }),
-      { pending: 'Updating...' }
-    )
+      })
+
+    }
   }
 
   const updateCard = async (updateData) => {
@@ -108,7 +132,7 @@ function ActiveCardModal() {
       <Form className="common__form">
         <Modal.Body>
           <BootstrapContainer className="card__modal">
-            {currentActiveCard?.cover && 
+            {currentActiveCard?.cover &&
               <Row className="card__modal__cover">
                 <Col>
                   <img
@@ -119,13 +143,13 @@ function ActiveCardModal() {
                 </Col>
               </Row>
             }
-        
+
             <Row className="card__modal__header">
               <span className="card__modal__header__subject_icon">
                 <i className="fa fa-credit-card" />
               </span>
               <span className="card__modal__header__close_btn" onClick={onClose}>
-                <i className="fa fa-close"  />
+                <i className="fa fa-close" />
               </span>
               <Col className="mb-3 px-5">
                 <Form.Control
@@ -161,7 +185,7 @@ function ActiveCardModal() {
                     <img src="https://trungquandev.com/wp-content/uploads/2019/06/trungquandev-cat-avatar.png" alt="avatar-trungquandev" title="trungquandev" />
                   </div>
                   <div className="member__avatars__item">
-                    <UserSelectPopover 
+                    <UserSelectPopover
                       users={board?.users}
                       type={USER_SELECT_POPOVER_TYPE_CARD_MEMBERS}
                     />
@@ -204,67 +228,52 @@ function ActiveCardModal() {
                   <div className="card__modal__activity__content">
                     <div className="comment__form mb-4">
                       <div className="user-avatar">
-                          <UserAvatar
-                            user={currentUser}
-                            width="32px"
-                            height="32px"
-                          />
+                        <UserAvatar
+                          user={currentUser}
+                          width="32px"
+                          height="32px"
+                        />
                       </div>
                       <div className="write-comment">
                         <Form.Group controlId="card-comment-input" >
-                          <Form.Control as="textarea" rows={1} placeholder="Write a comment..." />
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            placeholder="Write a comment..."
+                            onKeyDown={beforeUpdateCardComment}
+                          />
                         </Form.Group>
                       </div>
                     </div>
                     <div className="comments__list">
-                      <div className="comments__list__item">
-                        <div className="user-avatar">
-                          <UserAvatar
-                            user={currentUser}
-                            width="32px"
-                            height="32px"
-                          />
-                        </div>
-                        <div className="user-comment">
-                          <div className="user-info">
-                            <span className="username">Trungquandev Official</span>
-                            <span className="datetime">Jun 21 at 10:39 PM</span>
+                      {isEmpty(currentActiveCard?.comments)
+                        ? <div>No comment here!</div>
+                        : currentActiveCard?.comments.map((c, index) => {
+                          return <div className="comments__list__item" key={index}>
+                            <div className="user-avatar">
+                              <UserAvatar
+                                user={{
+                                  displayName: c.userDisplayName,
+                                  avatar: c.userAvatar
+                                }}
+                                width="32px"
+                                height="32px"
+                              />
+                            </div>
+                            <div className="user-comment">
+                              <div className="user-info">
+                                <span className="username">{c.userDisplayName}</span>
+                                <span className="datetime">{c.createdAt && moment(c.createdAt).format('llll')}</span>
+                              </div>
+                              <div className="comment-value">{c.content}</div>
+                            </div>
                           </div>
-                          <div className="comment-value">This is an example comment!</div>
-                        </div>
-                      </div>
-                      <div className="comments__list__item">
-                        <div className="user-avatar">
-                          <UserAvatar
-                            user={currentUser}
-                            width="32px"
-                            height="32px"
-                          />
-                        </div>
-                        <div className="user-comment">
-                          <div className="user-info">
-                            <span className="username">Trungquandev Official</span>
-                            <span className="datetime">Jun 21 at 10:39 PM</span>
-                          </div>
-                          <div className="comment-value">This is an example comment!</div>
-                        </div>
-                      </div>
-                      <div className="comments__list__item">
-                        <div className="user-avatar">
-                          <UserAvatar
-                            user={currentUser}
-                            width="32px"
-                            height="32px"
-                          />
-                        </div>
-                        <div className="user-comment">
-                          <div className="user-info">
-                            <span className="username">Trungquandev Official</span>
-                            <span className="datetime">Jun 21 at 10:39 PM</span>
-                          </div>
-                          <div className="comment-value">This is an example comment!</div>
-                        </div>
-                      </div>
+
+                        })
+                      }
+
+
+
                     </div>
                   </div>
                 </div>
@@ -291,17 +300,17 @@ function ActiveCardModal() {
                     <i className="fa fa-paperclip" /> Attachment
                   </div>
                   <Form.Group controlId="formBasicCardCover">
-                   <Form.Label className='mb-0' style={{ cursor: 'pointer', width: '100%' }}>
-                     <div className="menu__group__item">
-                       <i className="fa fa-window-maximize" /> Cover
-                     </div>
-                   </Form.Label>
-                   <Form.Control
-                     type="file"
-                     style={{ display: 'none' }}
-                     onChange={beforeUpdateCardCover}
-                   />
-                 </Form.Group>
+                    <Form.Label className='mb-0' style={{ cursor: 'pointer', width: '100%' }}>
+                      <div className="menu__group__item">
+                        <i className="fa fa-window-maximize" /> Cover
+                      </div>
+                    </Form.Label>
+                    <Form.Control
+                      type="file"
+                      style={{ display: 'none' }}
+                      onChange={beforeUpdateCardCover}
+                    />
+                  </Form.Group>
                 </div>
                 <div className="menu__group">
                   <div className="menu__group__title">Power-Ups</div>

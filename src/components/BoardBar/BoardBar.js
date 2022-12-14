@@ -1,15 +1,42 @@
-import React from 'react'
-import { Container as BootstrapContainer, Row, Col } from 'react-bootstrap'
+import React, { useState } from 'react'
+import { Container as BootstrapContainer, Row, Col,Form ,Button} from 'react-bootstrap'
 
 import './BoardBar.scss'
 import { selectCurrentFullBoard } from 'redux/activeBoard/activeBoardSlice'
-import { useSelector} from 'react-redux'
+import { useSelector } from 'react-redux'
 import UserAvatar from 'components/Common/UserAvatar'
 import UserSelectPopover from 'components/Common/UserSelectPopover'
 import {USER_SELECT_POPOVER_TYPE_BOARD_MEMBERS} from 'utilities/constants'
+import { useForm } from 'react-hook-form'
+import {
+  EMAIL_RULE,
+  FIELD_REQUIRED_MESSAGE,
+  EMAIL_RULE_MESSAGE,
+  fieldErrorMessage
+} from 'utilities/validators'
+import { inviteUserToBoardApi} from 'actions/ApiCall'
 function BoardBar() {
 
   const board = useSelector(selectCurrentFullBoard)
+  const [showInvitePopup, setShowInvitePopup] = useState(false)
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm()
+
+  const toggleShowInvitePopup = () => setShowInvitePopup(!showInvitePopup);
+
+  const onSubmitInvitation = (data) => {
+    // console.log(data)
+
+    const { inviteeEmail } = data
+    const boardId = board._id 
+    
+    // console.log('inviteeEmail',inviteeEmail)
+    // console.log('boardId',boardId)
+    inviteUserToBoardApi ( { inviteeEmail, boardId })
+    .then((invitation) => {
+      console.log(invitation)
+      setValue('inviteeEmail', null)
+    })
+  }
 
   return (
     <nav className="navbar-board">
@@ -59,8 +86,42 @@ function BoardBar() {
                 <img src="https://trungquandev.com/wp-content/uploads/2019/06/trungquandev-cat-avatar.png" alt="avatar-trungquandev" title="trungquandev" /> */}
                 {/* <span className="more-members">+7</span> */}
 
-                <div className='member__avatars__item'>
+                {/* <div className='member__avatars__item'>
                   <span className="invite">Invite</span>
+                </div> */}
+
+                <div className="member__avatars__item">
+                  <div className="invite">
+                    <div className="invite__label" onClick={toggleShowInvitePopup}>Invite</div>
+                    {showInvitePopup &&
+                      <div className="invite__popup">
+                        <span className="invite__popup__close_btn" onClick={toggleShowInvitePopup}>
+                          <i className="fa fa-close" />
+                        </span>
+                        <div className="invite__popup__title mb-2">Invite user to this board!</div>
+                        <div className="invite__popup__form">
+                          <Form className="common__form" onSubmit={handleSubmit(onSubmitInvitation)}>
+                            <Form.Control
+                              type="text"
+                              className="invite__field mb-2"
+                              placeholder="Enter email to invite..."
+                              {...register('inviteeEmail', {
+                                required: FIELD_REQUIRED_MESSAGE,
+                                pattern: {
+                                  value: EMAIL_RULE,
+                                  message: EMAIL_RULE_MESSAGE
+                                }
+                              })}
+                            />
+                            {fieldErrorMessage(errors, 'inviteeEmail')}
+                            <Form.Group className="text-right">
+                              <Button variant="success" type="submit" size="sm" className="px-4 mt-1">Invite</Button>
+                            </Form.Group>
+                          </Form>
+                        </div>
+                      </div>
+                    }
+                  </div>
                 </div>
              
               </div>
