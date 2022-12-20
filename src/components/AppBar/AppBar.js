@@ -1,15 +1,32 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import './AppBar.scss'
-import { Container as BootstrapContainer, Row, Col, InputGroup, FormControl, Form, Dropdown } from 'react-bootstrap'
+import { Container as BootstrapContainer, Row, Col, InputGroup, FormControl, Form, Dropdown,Button,Badge } from 'react-bootstrap'
 import trungquandevLogo from 'resources/images/logo-trungquandev-transparent-bg-192x192.png'
 import UserAvatar from 'components/Common/UserAvatar'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, signOutUserApi } from 'redux/user/userSlice'
 import { Link } from 'react-router-dom'
-
+import { fetchInvitationsAPI , selectCurrentNotifications } from 'redux/notifications/notificationsSlice'
+import { isEmpty } from 'lodash'
+import moment from 'moment'
 function AppBar() {
   const dispatch = useDispatch()
   const user = useSelector(selectCurrentUser)
+  const notifications = useSelector(selectCurrentNotifications)
+
+  // console.log('notifications',notifications)
+
+  useEffect(() => {
+    dispatch(fetchInvitationsAPI())
+  
+  
+  }, [dispatch])
+  
+  const updateBoardInvitation = (action, notification) => {
+    console.log('action: ', action)
+    console.log('notification: ', notification)
+  }
+
   return (
     <nav className="navbar-app">
       <BootstrapContainer className="trungquandev-trello-container">
@@ -48,7 +65,84 @@ function AppBar() {
             <div className="user-actions">
               <div className="item quick"><i className="fa fa-plus-square-o" /></div>
               <div className="item news"><i className="fa fa-info-circle" /></div>
-              <div className="item notification"><i className="fa fa-bell-o" /></div>
+
+              <div className="item notification">
+                <div className='common-dropdown'>
+                  <Dropdown autoClose="outside">
+                    <Dropdown.Toggle id="dropdown-basic" size="sm">
+                      <i className="fa fa-bell icon ring" />
+                    </Dropdown.Toggle>
+
+                    <Dropdown.Menu>
+                      <div className="notification__item__header">
+                        Notifications
+                      </div>
+
+                      <div className="notification__item__wrapper">
+                        {isEmpty(notifications) && 
+                              <Dropdown.Item className="notification__item">
+                                <div className="notification__item__content">
+                                    You have no new notification!
+                                </div>               
+                            </Dropdown.Item>
+                        }
+                        { notifications?.map( (n, index) => {
+                          if (n.type === 'BOARD_INVITATION') {
+                            return (
+                                <Dropdown.Item className="notification__item" key={index}>
+                                <div className="notification__item__content">
+                                  <strong>{n?.inviter?.displayName}</strong> 
+                                  &nbsp;had invited you to join the board:&nbsp;
+                                  <strong>{n?.board.title}</strong>
+                                </div>
+                                {n?.boardInvitation?.status === 'PENDING' &&
+                                  <div className="notification__item__actions">
+                                    <Button 
+                                    variant="success" type="button" size="sm" className="px-4"
+                                    onClick={() => updateBoardInvitation('accept',n)}
+                                    >
+                                      Accept
+                                    </Button>
+                                    <Button 
+                                    variant="secondary" type="button" size="sm" className="px-4"
+                                    onClick={() => updateBoardInvitation('reject',n)}
+                                    >
+                                      Reject
+                                    </Button>
+                                  </div>
+                                }
+                              
+                                {n?.boardInvitation?.status === 'ACCEPTED' &&
+                                  <div className="notification__item__actions">
+                                    <Badge bg="success">Accepted</Badge>
+                                  </div>
+                                }
+                               
+                                {n?.boardInvitation?.status === 'REJECTED' &&
+                                  <div className="notification__item__actions">
+                                    <Badge bg="secondary">Rejected</Badge>
+                                  </div>
+                                }
+                              
+
+                                <div className="notification__item__actions">
+                                  <Badge bg="info">{n.createdAt && moment(n.createdAt).format('llll')}</Badge>
+                                </div>
+                              </Dropdown.Item>
+                            )
+                          }
+                        })
+
+                        }
+                       
+
+                      </div>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                  </div>
+              </div>
+
+
               <div className="item user-avatar">
               <div className='common-dropdown'>
                 <Dropdown>

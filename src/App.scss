@@ -23,7 +23,12 @@ body {
 .icon {
   font-size: 14px;
   margin: 0 3px;
+  &.ring {
+    color: #ffd32a;
+    animation: ring 3s .5s ease-in-out infinite;
+  }
 }
+
 
 .trungquandev-content-editable {
   background-color: inherit;
