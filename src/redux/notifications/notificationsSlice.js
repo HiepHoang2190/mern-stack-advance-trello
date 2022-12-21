@@ -10,10 +10,10 @@ export const fetchInvitationsAPI = createAsyncThunk('notifications/fetchInvitati
  const request = await authorizedAxiosInstance.get(`${API_ROOT}/v1/invitations`)
  return request.data
 })
-// export const updateBoardInvitationAPI = createAsyncThunk('notifications/updateBoardInvitationAPI', async ({ action, notificationId }) => {
-//   const request = await authorizedAxiosInstance.put(`${API_ROOT}/v1/invitations/board/${notificationId}`, { action })
-//   return request.data
-// })
+export const updateBoardInvitationAPI = createAsyncThunk('notifications/updateBoardInvitationAPI', async ({ action, notificationId }) => {
+  const request = await authorizedAxiosInstance.put(`${API_ROOT}/v1/invitations/board/${notificationId}`, { action })
+  return request.data
+})
  
 export const notificationsSlice = createSlice({
  name: 'notifications',
@@ -37,11 +37,11 @@ export const notificationsSlice = createSlice({
        let incomingInvitations = action.payload
        state.currentNotifications = Array.isArray(incomingInvitations) ? incomingInvitations.reverse() : []
      })
-     // .addCase(updateBoardInvitationAPI.fulfilled, (state, action) => {
-     //   const incomingInvitation = action.payload
-     //   const getInvitation = state.currentNotifications.find(i => i._id === incomingInvitation._id)
-     //   getInvitation.boardInvitation = incomingInvitation.boardInvitation
-     // })
+     .addCase(updateBoardInvitationAPI.fulfilled, (state, action) => {
+       const incomingInvitation = action.payload
+       const getInvitation = state.currentNotifications.find(i => i._id === incomingInvitation._id)
+       getInvitation.boardInvitation = incomingInvitation.boardInvitation
+     })
  }
 })
  

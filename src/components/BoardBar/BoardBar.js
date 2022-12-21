@@ -15,6 +15,7 @@ import {
   fieldErrorMessage
 } from 'utilities/validators'
 import { inviteUserToBoardApi} from 'actions/ApiCall'
+import { socketIoInstance } from 'index'
 function BoardBar() {
 
   const board = useSelector(selectCurrentFullBoard)
@@ -33,8 +34,9 @@ function BoardBar() {
     // console.log('boardId',boardId)
     inviteUserToBoardApi ( { inviteeEmail, boardId })
     .then((invitation) => {
-      console.log(invitation)
+      // console.log(invitation)
       setValue('inviteeEmail', null)
+      socketIoInstance.emit('c_user_invited_to_board', invitation)
     })
   }
 

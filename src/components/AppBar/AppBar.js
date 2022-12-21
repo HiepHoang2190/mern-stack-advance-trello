@@ -5,26 +5,50 @@ import trungquandevLogo from 'resources/images/logo-trungquandev-transparent-bg-
 import UserAvatar from 'components/Common/UserAvatar'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, signOutUserApi } from 'redux/user/userSlice'
-import { Link } from 'react-router-dom'
-import { fetchInvitationsAPI , selectCurrentNotifications } from 'redux/notifications/notificationsSlice'
+import { Link ,useNavigate} from 'react-router-dom'
+import { fetchInvitationsAPI , selectCurrentNotifications, updateBoardInvitationAPI, addNotification } from 'redux/notifications/notificationsSlice'
 import { isEmpty } from 'lodash'
 import moment from 'moment'
+import { socketIoInstance } from 'index'
+
 function AppBar() {
   const dispatch = useDispatch()
   const user = useSelector(selectCurrentUser)
   const notifications = useSelector(selectCurrentNotifications)
+  const navigate = useNavigate()
+  const [newNotif, setNewNotif] = useState(false)
 
   // console.log('notifications',notifications)
 
   useEffect(() => {
     dispatch(fetchInvitationsAPI())
   
-  
-  }, [dispatch])
+    socketIoInstance.on('s_user_invited_to_board', (invitation) => {
+      if (invitation.inviteeId === user._id) {
+        //  Thêm cái bản ghi invitation mới vào redux
+
+        dispatch(addNotification(invitation))
+        //  Cập nhật trạng thái là đang có thông báo đến
+        setNewNotif(true)
+
+      }
+    })
+
+  }, [dispatch, user._id])
   
   const updateBoardInvitation = (action, notification) => {
-    console.log('action: ', action)
-    console.log('notification: ', notification)
+    // console.log('action: ', action)
+    // console.log('notification: ', notification)
+    dispatch(updateBoardInvitationAPI({
+      action: action,
+      notificationId : notification._id
+    })).then((res) => {
+      // console.log('res',res)
+
+      if (res.payload.boardInvitation.status === 'ACCEPTED') {
+        navigate(`/b/${res.payload.boardInvitation.boardId}`)
+      }
+    })
   }
 
   return (
@@ -69,9 +93,13 @@ function AppBar() {
               <div className="item notification">
                 <div className='common-dropdown'>
                   <Dropdown autoClose="outside">
-                    <Dropdown.Toggle id="dropdown-basic" size="sm">
-                      <i className="fa fa-bell icon ring" />
-                    </Dropdown.Toggle>
+                    
+                    <div onClick={() => setNewNotif(false)}>
+                      <Dropdown.Toggle id="dropdown-basic" size="sm">
+                        <i className={`fa fa-bell icon ${(newNotif ? 'ring' : '')}`}/>                     
+                      </Dropdown.Toggle>
+                    </div>
+                   
 
                     <Dropdown.Menu>
                       <div className="notification__item__header">
