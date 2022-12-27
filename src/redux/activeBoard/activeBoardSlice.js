@@ -35,18 +35,19 @@ export const activeBoardSlice = createSlice({
       // console.log('current board',current(state.currentFullBoard))
       // console.log('card', action.payload)
       const inComingCard = action.payload
-
       const column = state.currentFullBoard.columns.find( i => i._id === inComingCard.columnId)
       if(column) {
         const card = column.cards.find(i => i._id === inComingCard._id)
         if (card) {
           // card.title = inComingCard.title
-          const updateKeys = ['title', 'cover','description', 'memberIds','comments']
+          const updateKeys = ['title', 'cover','description', 'memberIds','comments','c_CardMembers']
           updateKeys.forEach( key => {
             card[key] = inComingCard[key]
           })
         }
       }
+
+      
     }
   },
   extraReducers: (builder) => {
@@ -60,6 +61,20 @@ export const activeBoardSlice = createSlice({
       fullBoard.columns = mapOrder(fullBoard.columns, fullBoard.columnOrder, '_id')
       fullBoard.columns.forEach(column => {
         column.cards = mapOrder(column.cards, column.cardOrder, '_id')
+
+        column.cards.forEach(card => {
+          let c_CardMembers = []
+          if (Array.isArray(card.memberIds)) {
+            card.memberIds.forEach(memberId => {
+              const fullMemberInfo = fullBoard.users.find(u => u._id === memberId)
+              if (fullMemberInfo) c_CardMembers.push(fullMemberInfo)
+            })
+          }
+
+          card['c_CardMembers'] = c_CardMembers
+
+        })
+
       })
 
       state.currentFullBoard = fullBoard
