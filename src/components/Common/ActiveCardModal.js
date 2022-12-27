@@ -102,8 +102,25 @@ function ActiveCardModal() {
     }
   }
 
+  const beforeUpdateCardMembers = (userId, action) => {
+    // console.log('userId',userId)
+    // console.log('action',action)
+
+    updateCard({ incomingMember: { userId, action } })
+  }
+
   const updateCard = async (updateData) => {
     const updateCard = await updateCardAPI(currentActiveCard._id, updateData)
+
+    let c_CardMembers = []
+    if (Array.isArray(updateCard.memberIds)) {
+      updateCard.memberIds.forEach(memberId => {
+        const fullMemberInfo = board.users.find( u => u._id === memberId)
+        if (fullMemberInfo) c_CardMembers.push(fullMemberInfo)
+      })
+    }
+
+    updateCard ['c_CardMembers'] = c_CardMembers
 
     // Cập nhật lại cái card đang active trong modal hiện tại
     dispatch(updateCurrentActiveCard(updateCard))
@@ -169,25 +186,30 @@ function ActiveCardModal() {
               <Col md={9}>
                 <div className="card__element__title">Members</div>
                 <div className="member__avatars mb-4">
-                  <div className="member__avatars__item">
-                    <img src="https://trungquandev.com/wp-content/uploads/2021/01/trungquandev-avatar-2021.jpg" alt="avatar-trungquandev" title="trungquandev" />
-                  </div>
-                  <div className="member__avatars__item">
-                    <img src="https://trungquandev.com/wp-content/uploads/2018/04/trungquandev-avatar.jpeg" alt="avatar-trungquandev" title="trungquandev" />
-                  </div>
-                  <div className="member__avatars__item">
-                    <img src="https://trungquandev.com/wp-content/uploads/2019/03/trungquandev-avatar-01-scaled.jpg" alt="avatar-trungquandev" title="trungquandev" />
-                  </div>
-                  <div className="member__avatars__item">
-                    <img src="https://trungquandev.com/wp-content/uploads/2017/03/aboutme.jpg" alt="avatar-trungquandev" title="trungquandev" />
-                  </div>
-                  <div className="member__avatars__item">
-                    <img src="https://trungquandev.com/wp-content/uploads/2019/06/trungquandev-cat-avatar.png" alt="avatar-trungquandev" title="trungquandev" />
-                  </div>
+
+                  {!isEmpty(currentActiveCard?.c_CardMembers) &&
+                    currentActiveCard?.c_CardMembers.map((u, index) => {
+                      return (
+                        <div className="member__avatars__item" key={index}>
+                            <UserAvatar
+                              user={u}
+                              width="28px"
+                              height="28px"
+                            />
+                        </div>
+                      )
+
+                    })
+                  }
+
+
+
                   <div className="member__avatars__item">
                     <UserSelectPopover
                       users={board?.users}
                       type={USER_SELECT_POPOVER_TYPE_CARD_MEMBERS}
+                      cardMemberIds={currentActiveCard?.memberIds}
+                      beforeUpdateCardMembers={beforeUpdateCardMembers}
                     />
                   </div>
                 </div>
@@ -281,9 +303,14 @@ function ActiveCardModal() {
               <Col md={3}>
                 <div className="menu__group">
                   <div className="menu__group__title">Suggested</div>
-                  <div className="menu__group__item">
-                    <i className="fa fa-user-circle-o" /> Join
-                  </div>
+                  {!currentActiveCard?.memberIds?.includes(currentUser._id) && 
+                    <div className="menu__group__item"
+                    onClick={() => beforeUpdateCardMembers(currentUser._id, 'CARD_MEMBERS_ACTION_PUSH')}
+                    >
+                      <i className="fa fa-user-circle-o" /> Join
+                    </div>
+                  }
+                 
                 </div>
                 <div className="menu__group">
                   <div className="menu__group__title">Add to card</div>

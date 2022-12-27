@@ -1,11 +1,45 @@
-import React, { useState } from 'react'
+import React, { useEffect,useState } from 'react'
 import UserAvatar from 'components/Common/UserAvatar'
-
-function UserSelectPopover({ label, users=[] }) {
+import { USER_SELECT_POPOVER_TYPE_CARD_MEMBERS } from 'utilities/constants'
+import { cloneDeep } from 'lodash'
+function UserSelectPopover({ label, users=[], type, cardMemberIds, beforeUpdateCardMembers }) {
   const [showPopover, setShowPopover] = useState(false)
+  const [remakeUsers, setRemakeUsers] = useState([])
+
+  useEffect(() => {
+   
+  if(Array.isArray(users) && Array.isArray(cardMemberIds) && type === USER_SELECT_POPOVER_TYPE_CARD_MEMBERS) {
+    let newRemakeUsers = cloneDeep(users)
+    newRemakeUsers.forEach( u => {
+      if (cardMemberIds.includes(u._id)) {
+        u['selected'] = true
+      }
+    })
+
+    setRemakeUsers(newRemakeUsers)
+
+  } else {
+    setRemakeUsers(users)
+  }
+   
+  }, [cardMemberIds,type, users])
+  
 
   const toggleShowPopOver = () => {
     setShowPopover(!showPopover)
+  }
+
+  const handleClickUser = (user) => {
+    
+    if( type === USER_SELECT_POPOVER_TYPE_CARD_MEMBERS) {
+      // console.log('user',user)
+      let action = 'CARD_MEMBERS_ACTION_PUSH'
+      if (user.selected) {
+        action = 'CARD_MEMBERS_ACTION_REMOVE'
+      }
+
+      beforeUpdateCardMembers(user._id, action)
+    }
   }
 
   return (
@@ -20,8 +54,12 @@ function UserSelectPopover({ label, users=[] }) {
           </span>
           <div className="title mb-2 text-center">Board members</div>
           <div className="users-list">
-            {users.map((u, index) => (
-              <div className="user" key={index}>
+            {remakeUsers.map((u, index) => (
+              <div    
+              className={`user ${u.selected ? 'selected' : ''}`}
+              key={index}
+              onClick= {() => handleClickUser(u)}
+              >
                 <UserAvatar
                   user={u}
                   width="28px"
